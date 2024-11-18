@@ -1,0 +1,89 @@
+*{
+    padding: none;
+    margin: none;
+    box-sizing: border-box;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 400px;
+  }
+  
+  .modal-content h2 {
+    color: #333;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+  }
+  
+  .modal-content p {
+    color: #666;
+    margin-bottom: 1.5rem;
+  }
+  
+  .modal-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .modal-content input {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  .card-details {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .card-details input {
+    width: 50%;
+  }
+  
+  .modal-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .modal-buttons button {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border: none;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .modal-buttons button[type="submit"] {
+    background-color: #4a90e2;
+    color: white;
+  }
+  
+  .modal-buttons button[type="button"] {
+    background-color: #f5f5f5;
+    color: #666;
+  }
+  
+  .modal-buttons button:hover {
+    transform: translateY(-1px);
+  }
