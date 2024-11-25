@@ -4,7 +4,7 @@ import "../../styles/AuthStyles.css";
 
 function Login({ setUser }) {
   const [credentials, setCredentials] = useState({
-    username: "",
+    email: "",
     password: "",
   });
   const [errors, setErrors] = useState([]);
@@ -19,27 +19,39 @@ function Login({ setUser }) {
     hasSpecial: /[!@#$%^&*(),.?":{}|<>]/,
   };
 
-  const validateUsername = (username) => {
+  const validateEmail = (email) => {
     const errors = [];
+    const disposableDomains = ['tempmail.com', 'throwaway.com']; // Ideally, use a maintained list
 
-    // Prevent XSS by disallowing HTML/script characters
-    if (/[<>/"'&]/.test(username)) {
-      errors.push("Username contains invalid characters");
+    if (!email || typeof email !== 'string') {
+        errors.push("Email is required");
+        return errors;
     }
 
-    // Username length and allowed characters
-    if (username.length < 3 || username.length > 30) {
-      errors.push("Username must be between 3 and 30 characters");
+    // Normalize email
+    const normalizedEmail = email.trim();
+
+    // Check email length
+    if (normalizedEmail.length < 6 || normalizedEmail.length > 254) {
+        errors.push("Email must be between 6 and 254 characters");
+        return errors;
     }
 
-    if (!/^[a-zA-Z0-9._-]+$/.test(username)) {
-      errors.push(
-        "Username can only contain letters, numbers, dots, underscores and hyphens"
-      );
+    // Basic regex validation
+    const basicEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!basicEmailRegex.test(normalizedEmail)) {
+        errors.push("Please enter a valid email address");
+    }
+
+    // Check for disposable domains
+    const domain = normalizedEmail.split('@')[1];
+    if (disposableDomains.includes(domain)) {
+        errors.push("Please use a non-disposable email address");
     }
 
     return errors;
-  };
+};
+
 
   const validatePassword = (password) => {
     const errors = [];
@@ -75,7 +87,7 @@ function Login({ setUser }) {
 
     // Real-time validation
     const validationErrors =
-      name === "username" ? validateUsername(value) : validatePassword(value);
+      name === "email" ? validateEmail(value) : validatePassword(value);
 
     setErrors((prev) => ({ ...prev, [name]: validationErrors }));
   };
@@ -84,12 +96,12 @@ function Login({ setUser }) {
     e.preventDefault();
 
     // Final validation before submission
-    const usernameErrors = validateUsername(credentials.username);
+    const emailErrors = validateEmail(credentials.email);
     const passwordErrors = validatePassword(credentials.password);
 
-    if (usernameErrors.length || passwordErrors.length) {
+    if (emailErrors.length || passwordErrors.length) {
       setErrors({
-        username: usernameErrors,
+        email: emailErrors,
         password: passwordErrors,
       });
       return;
@@ -111,13 +123,13 @@ function Login({ setUser }) {
         <form onSubmit={handleSubmit}>
           <input
             type="text"
-            placeholder="Enter username"
-            value={credentials.username}
+            placeholder="Enter email"
+            value={credentials.email}
             onChange={handleChange}
-            autoComplete="username"
-            name="username"
+            autoComplete="email"
+            name="email"
           />
-          {errors.username?.map((error, i) => (
+          {errors.email?.map((error, i) => (
             <li
               style={{
                 color: "red",

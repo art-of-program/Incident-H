@@ -1,73 +1,143 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import '../../styles/AuthStyles.css';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "../../styles/AuthStyles.css";
 
 function Register({ setUser }) {
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    setErrors({ ...errors, [name]: "" }); // Clear errors as user types
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Email Validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email regex
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required.";
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address.";
+    }
+
+    // Password Validation
+    if (!formData.password) {
+      newErrors.password = "Password is required.";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters.";
+    } else if (!/[A-Z]/.test(formData.password)) {
+      newErrors.password =
+        "Password must contain at least one uppercase letter.";
+    } else if (!/[a-z]/.test(formData.password)) {
+      newErrors.password =
+        "Password must contain at least one lowercase letter.";
+    } else if (!/[0-9]/.test(formData.password)) {
+      newErrors.password = "Password must contain at least one number.";
+    } else if (!/[!@#$%^&*]/.test(formData.password)) {
+      newErrors.password =
+        "Password must contain at least one special character (!@#$%^&*).";
+    }
+
+    // Confirm Password Validation
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password.";
+    } else if (formData.confirmPassword !== formData.password) {
+      newErrors.confirmPassword = "Passwords do not match.";
+    }
+
+    setErrors(newErrors);
+
+    // Return true if there are no errors
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.username || !formData.password || !formData.confirmPassword) {
-      setError('Please fill in all required fields');
-      return;
+
+    if (validateForm()) {
+      // Form is valid; proceed with submission
+      console.log("Form submitted successfully:", formData);
+      // Add API call or further processing here
     }
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    setUser({ username: formData.username, id: Date.now() });
-    navigate('/');
   };
 
   return (
     <div className="auth-container">
       <div className="auth-card">
         <h2>Register</h2>
-        {error && <div className="error-message">{error}</div>}
         <form onSubmit={handleSubmit}>
           <input
-            type="text"
-            placeholder="Username"
-            value={formData.username}
-            onChange={(e) => setFormData({
-              ...formData,
-              username: e.target.value
-            })}
-          />
-          <input
             type="email"
-            placeholder="Email (optional)"
+            placeholder="Enter-email"
+            name="email"
             value={formData.email}
-            onChange={(e) => setFormData({
-              ...formData,
-              email: e.target.value
-            })}
+            onChange={handleInputChange}
+            required
           />
+          {errors.email && (
+            <p
+              style={{
+                color: "red",
+                fontSize: "12px",
+                fontFamily: "-moz-initial",
+              }}
+              className="error"
+            >
+              {errors.email}
+            </p>
+          )}
           <input
             type="password"
-            placeholder="Password"
+            placeholder="Enter-password"
+            name="password"
             value={formData.password}
-            onChange={(e) => setFormData({
-              ...formData,
-              password: e.target.value
-            })}
+            onChange={handleInputChange}
+            required
           />
+          {errors.password && (
+            <p
+              style={{
+                color: "red",
+                fontSize: "12px",
+                fontFamily: "-moz-initial",
+              }}
+              className="error"
+            >
+              {errors.password}
+            </p>
+          )}
           <input
             type="password"
             placeholder="Confirm Password"
+            name="confirmPassword"
             value={formData.confirmPassword}
-            onChange={(e) => setFormData({
-              ...formData,
-              confirmPassword: e.target.value
-            })}
+            onChange={handleInputChange}
+            required
           />
+          {errors.confirmPassword && (
+            <p
+              style={{
+                color: "red",
+                fontSize: "12px",
+                fontFamily: "-moz-initial",
+              }}
+              className="error"
+            >
+              {errors.confirmPassword}
+            </p>
+          )}
           <button type="submit">Register</button>
         </form>
         <p>

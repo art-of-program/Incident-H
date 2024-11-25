@@ -9,14 +9,15 @@ import PremiumModalPage from './pages/Payment/PremiumModalPage.jsx';
 import './styles/App.css';
 
 function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({username: 'dude'});
+
 
   return (
       <div className="app">
         <Routes>
           <Route 
             path="/" 
-            element={user ? <ChatRoomPage user={user} setUser={setUser} /> : <Navigate to="/login" />} 
+            element={<ChatRoomPage user={user.username} setUser={setUser} />} 
           />
           <Route
             path="/login" 

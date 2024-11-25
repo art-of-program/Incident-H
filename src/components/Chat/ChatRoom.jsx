@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Send, LogOut } from 'lucide-react';
+import { Send, LogOut, Trash2 } from 'lucide-react';
+import axios from 'axios';
 import Message from './Message';
 import PremiumModal from '../Payment/PremiumModal';
 import '../../styles/ChatStyles.css';
@@ -12,7 +13,21 @@ function ChatRoom({ user, setUser }) {
   const [isPremium, setIsPremium] = useState(false);
   const navigate = useNavigate();
 
-  const handleSend = (e) => {
+  console.log({user})
+
+
+  // Load chat history from localStorage
+  useEffect(() => {
+    const storedMessages = JSON.parse(localStorage.getItem('chatHistory')) || [];
+    setMessages(storedMessages);
+  }, []);
+
+  // Save chat history to localStorage
+  useEffect(() => {
+    localStorage.setItem('chatHistory', JSON.stringify(messages));
+  }, [messages]);
+
+  const handleSend = async (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
@@ -21,26 +36,53 @@ function ChatRoom({ user, setUser }) {
       return;
     }
 
-    const message = {
+    // Add user message to the chat
+    const userMessage = {
       id: Date.now(),
       text: newMessage,
-      sender: user.username,
-      timestamp: new Date()
+      sender: "dude",
+      timestamp: new Date(),
     };
 
-    setMessages([...messages, message]);
+
+    setMessages((prev) => [...prev, userMessage]);
     setNewMessage('');
 
-    // Simulate bot response
-    setTimeout(() => {
-      const botMessage = {
+    try {
+      // Send user message to the server and await response
+      const response = await axios.post(
+        'http://89.116.48.145:8080/chat',
+        { message: newMessage },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      console.log(response)
+
+      // Add server response to the chat
+      const serverMessage = {
         id: Date.now() + 1,
-        text: `Hey ${user.username}! This is a demo response.`,
-        sender: 'Bot',
-        timestamp: new Date()
+        text: response.data.reply || 'No response from server.',
+        sender: 'Server',
+        timestamp: new Date(),
       };
-      setMessages(prev => [...prev, botMessage]);
-    }, 1000);
+
+      setMessages((prev) => [...prev, serverMessage]);
+    } catch (error) {
+      console.error('Error sending message to the server:', error);
+
+      // Add error message to the chat
+      const errorMessage = {
+        id: Date.now() + 2,
+        text: 'Error: Unable to fetch server response.',
+        sender: 'System',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    }
   };
 
   const handleLogout = () => {
@@ -48,49 +90,66 @@ function ChatRoom({ user, setUser }) {
     navigate('/login');
   };
 
+  const handleDeleteMessage = (id) => {
+    setMessages(messages.filter((message) => message.id !== id));
+  };
+
+  const handleClearChat = () => {
+    setMessages([]);
+  };
+
+
   return (
-    <div className="chat-container">
-      <div className="chat-header">
+    <div className="chat-wrapper">
+      {/* Sidebar */}
+      <div className="chat-sidebar">
         <h2>Incident Helper</h2>
-        <div className="header-right">
-          {isPremium && <span className="premium-badge">Premium</span>}
-          <button className="logout-btn" onClick={handleLogout}>
-            <LogOut size={20} />
-          </button>
-        </div>
-      </div>
-
-      <div className="messages-container">
-        {messages.map(message => (
-          <Message 
-            key={message.id} 
-            message={message} 
-            isUser={message.sender === user.username}
-          />
-        ))}
-      </div>
-
-      <form className="message-form" onSubmit={handleSend}>
-        <input
-          type="text"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Type a message..."
-        />
-        <button type="submit">
-          <Send size={20} />
+        <button className="logout-btn" onClick={handleLogout}>
+          <LogOut size={20} />
         </button>
-      </form>
+        <button className="clear-chat-btn" onClick={handleClearChat}>
+          Clear Chat <Trash2 size={16} />
+        </button>
+      </div>
 
-      {showPremium && (
-        <PremiumModal
-          onClose={() => setShowPremium(false)}
-          onSuccess={() => {
-            setIsPremium(true);
-            setShowPremium(false);
-          }}
-        />
-      )}
+      {/* Main Chat Area */}
+      <div className="chat-container">
+        <div className="messages-container">
+          {messages.map((message) => (
+            <Message
+              key={message.id}
+              message={message}
+              isUser={message.sender === "dude"}
+              onDelete={() => handleDeleteMessage(message.id)}
+            />
+          ))}
+        </div>
+
+        {/* Input Form */}
+        <form className="message-form" onSubmit={handleSend}>
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Type a message..."
+            name="message"
+          />
+          <button type="submit">
+            <Send size={20} />
+          </button>
+        </form>
+
+        {/* Premium Modal */}
+        {showPremium && (
+          <PremiumModal
+            onClose={() => setShowPremium(false)}
+            onSuccess={() => {
+              setIsPremium(true);
+              setShowPremium(false);
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }
